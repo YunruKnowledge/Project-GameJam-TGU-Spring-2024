@@ -1,0 +1,23 @@
+{
+  "name": "project-gamejam-tgu-spring-2024",
+  "version": "1.0.0",
+  "description": "",
+  "main": "export/index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "sass":"sass --watch tools/style.sass export/style.css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YunruKnowledge/Project-GameJam-TGU-Spring-2024.git"
+  },
+  "author": "YunruKnowledge",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/YunruKnowledge/Project-GameJam-TGU-Spring-2024/issues"
+  },
+  "homepage": "https://github.com/YunruKnowledge/Project-GameJam-TGU-Spring-2024#readme",
+  "dependencies": {
+    "sass": "^1.77.2"
+  }
+}

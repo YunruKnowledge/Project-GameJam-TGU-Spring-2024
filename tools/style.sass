@@ -1,0 +1,28 @@
+*
+    margin: 0
+    padding: 0
+
+body,html
+    width: 100%
+    min-height: 100vh
+    display: flex
+
+.game_display_container
+    border: 2px red dashed
+    width: 640px
+    height: 640px
+    margin: auto
+    *
+        outline: 1px dashed blue
+
+    >div>div
+        &:hover
+            transform: scale(120%)
+            transition: transform 200ms
+
+.mapGrid
+    background-color: black
+.marked
+    outline: red 2px solid !important
+.ent_test
+    background-color: yellow
