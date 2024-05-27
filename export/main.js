@@ -2,14 +2,17 @@ const rows = 40;
 const cols = 40;
 const light_radius = 8;
 let entities = [];
-const entity = {
-  position: {
-    x: 0,
-    y: 0,
-  },
-  name: "test",
+const createEntity = () => {
+  const entity = {
+    position: {
+      x: 5,
+      y: 6,
+    },
+    name: "test",
+  };
+  return entity;
 };
-entities.push(entity);
+entities.push(createEntity());
 
 const initGameEvents = () => {
   const container = document.querySelector(".game_display_container");
@@ -48,14 +51,61 @@ const getRandomIntInclusive = (min, max) => {
   return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
 };
 setTimeout(() => {
-  setInterval(() => {
+  entity_move(entities[0]);
 
-    findPath(entities[0], {
-      x: entities[0].position.x + getRandomIntInclusive(0, 5),
-      y: entities[0].position.y + getRandomIntInclusive(0, 5),
-    });
-  }, 400);
-}, 100);
+  setInterval(() => {}, 400);
+}, 200);
+
+// ENTITIES
+const entity_move = async (entity, position_x, position_y) => {
+  const path = await findPath(entity, {
+    x: getRandomIntInclusive(0, 40),
+    y: getRandomIntInclusive(0, 40),
+  });
+  console.log(path);
+
+  let current_path_index = 0;
+  const interval = setInterval(() => {
+    // console.log(path[current_path_index]);
+    
+    if (current_path_index >= path.length) {
+      clearPathingMove()
+    }
+
+    entity.position.x = path[current_path_index].y;
+    entity.position.y = path[current_path_index].x;
+    const tile = document.querySelector(
+      `[id="${path[current_path_index].x}-${path[current_path_index].y}"]`
+    );
+    tile.classList.add("ent_test");
+
+    // check for light, to re-path
+    if (current_path_index > 5) {
+      if (tile.hasAttribute("isLit")) {
+        entity_move(entity)
+        clearPathingMove()
+      }
+    }
+
+    // previous tile
+    if (current_path_index) {
+      const prev_tile = document.querySelector(
+        `[id="${path[current_path_index - 1].x}-${
+          path[current_path_index - 1].y
+        }"]`
+      );
+      prev_tile.classList.remove("ent_test");
+    }
+
+
+    console.log(tile);
+    current_path_index++;
+    function clearPathingMove() {
+      clearTimeout(interval);
+      return;
+    }
+  }, 200);
+};
 
 const selectSurroundingBlocks = (row, col, radius) => {
   // Clear
@@ -98,7 +148,7 @@ const findPath = (entity = null, position = { x: 0, y: 0 }) => {
     mapGraph.push(row_array);
   }
   // console.log(mapGraph);
-  console.log(entity.position, position);
+  // console.log(entity.position, position);
 
   // y x input/output order.
   const graphWithWeight = new Graph(mapGraph);
@@ -113,19 +163,22 @@ const findPath = (entity = null, position = { x: 0, y: 0 }) => {
   const [...listOfMarkedTiles] = document.querySelectorAll(".mapGrid .marked");
   listOfMarkedTiles.forEach((el) => el.classList.remove("marked"));
   for (let index = 0; index < resultWithWeight.length; index++) {
-    setTimeout(() => {
-      if (index == 0) {
-        // include starting tile
-        const tile = document.querySelector(
-          `[id="${resultWithWeight[index].parent.x}-${resultWithWeight[index].parent.y}"]`
-        );
-        tile.classList.add("marked");
-      }
+    if (index == 0) {
+      // include starting tile
       const tile = document.querySelector(
-        `[id="${resultWithWeight[index].x}-${resultWithWeight[index].y}"]`
+        `[id="${resultWithWeight[index].parent.x}-${resultWithWeight[index].parent.y}"]`
       );
       tile.classList.add("marked");
-    }, 1000);
+    }
+    const tile = document.querySelector(
+      `[id="${resultWithWeight[index].x}-${resultWithWeight[index].y}"]`
+    );
+    tile.classList.add("marked");
   }
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(resultWithWeight);
+    }, 400);
+  });
   // console.log(resultWithWeight);
 };
