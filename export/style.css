@@ -15,16 +15,16 @@ body, html {
   height: 640px;
   margin: auto;
 }
-.game_display_container * {
-  outline: 1px dashed blue;
-}
 .game_display_container > div > div:hover {
   transform: scale(120%);
   transition: transform 200ms;
 }
+.game_display_container > div {
+  position: absolute;
+}
 
 .mapGrid {
-  background-color: black;
+  background-color: rgba(0, 0, 0, 0);
 }
 
 .marked {
