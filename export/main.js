@@ -1,6 +1,175 @@
 const rows = 40;
 const cols = 40;
 const light_radius = 8;
+
+const SPRITE_WIDTH = 16;
+const SPRITE_HEIGHT = 16;
+const SPRITE_BORDER_WIDTH = 0;
+const SPRITE_SPACING_WIDTH = 0;
+
+const getRandomIntInclusive = (min, max) => {
+  const minCeiled = Math.ceil(min);
+  const maxFloored = Math.floor(max);
+  return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
+};
+
+const getTIleOffsetPosition = (col, row)=> {
+  return {
+    x: SPRITE_BORDER_WIDTH + col * (SPRITE_SPACING_WIDTH + SPRITE_WIDTH),
+    y: SPRITE_BORDER_WIDTH + row * (SPRITE_SPACING_WIDTH + SPRITE_HEIGHT),
+  };
+}
+
+const spriteTileSet = {
+  grass1: {
+    position: getTIleOffsetPosition(0, 1),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass2: {
+    position: getTIleOffsetPosition(0, 2),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass3: {
+    position: getTIleOffsetPosition(0, 3),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass4: {
+    position: getTIleOffsetPosition(0, 4),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass5: {
+    position: getTIleOffsetPosition(0, 5),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass6: {
+    position: getTIleOffsetPosition(0, 6),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass7: {
+    position: getTIleOffsetPosition(1, 6),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass8: {
+    position: getTIleOffsetPosition(2, 6),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass9: {
+    position: getTIleOffsetPosition(3, 6),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass10: {
+    position: getTIleOffsetPosition(0, 7),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass11: {
+    position: getTIleOffsetPosition(1, 7),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass12: {
+    position: getTIleOffsetPosition(2, 7),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  grass13: {
+    position: getTIleOffsetPosition(3, 7),
+    isBlockade: false,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  rock1: {
+    position: getTIleOffsetPosition(4, 6),
+    isBlockade: true,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  rock2: {
+    position: getTIleOffsetPosition(4, 7),
+    isBlockade: true,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  rock3: {
+    position: getTIleOffsetPosition(4, 8),
+    isBlockade: true,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  rock4: {
+    position: getTIleOffsetPosition(4, 9),
+    isBlockade: true,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  flower1: {
+    position: getTIleOffsetPosition(0, 8),
+    isBlockade: true,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  flower2: {
+    position: getTIleOffsetPosition(0, 9),
+    isBlockade: true,
+    width: 16,
+    height: 16,
+    isTransparent: false,
+  },
+  flower3: {
+    position: getTIleOffsetPosition(1, 8),
+    isBlockade: true,
+    width: 16,
+    height: 32,
+    isTransparent: true,
+  },
+  flower4: {
+    position: getTIleOffsetPosition(2, 8),
+    isBlockade: true,
+    width: 32,
+    height: 32,
+    isTransparent: true,
+  },
+};
+
 let entities = [];
 
 // CREATE FUNCTIONS
@@ -49,183 +218,13 @@ const createUUID = () => {
   });
 };
 
-const createCanvas_background = (sprite_tile_size = 16) => {
-  const SPRITE_WIDTH = sprite_tile_size;
-  const SPRITE_HEIGHT = sprite_tile_size;
-  const BORDER_WIDTH = 0;
-  const SPACING_WIDTH = 0;
-
-  // converts a row and column of the spritesheet
-  // to coordinates in an image
-  function getTIleOffsetPosition(col, row) {
-    return {
-      x: BORDER_WIDTH + col * (SPACING_WIDTH + SPRITE_WIDTH),
-      y: BORDER_WIDTH + row * (SPACING_WIDTH + SPRITE_HEIGHT),
-    };
-  }
-
-  console.log(
-    `A sprite at position (3, 1) has pixel coordinates ${
-      getTIleOffsetPosition(3, 1).x
-    }, ${getTIleOffsetPosition(3, 1).y}`
-  );
-
+const createCanvas_background = () => {
   const container = document.querySelector(".game_display_container");
   const canvas = document.createElement("canvas");
   canvas.width = container.clientWidth;
   canvas.height = container.clientHeight;
   canvas.style.position = `absolute`;
   const context = canvas.getContext("2d");
-
-  const spriteTileSet = {
-    grass1: {
-      position: getTIleOffsetPosition(0, 1),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass2: {
-      position: getTIleOffsetPosition(0, 2),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass3: {
-      position: getTIleOffsetPosition(0, 3),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass4: {
-      position: getTIleOffsetPosition(0, 4),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass5: {
-      position: getTIleOffsetPosition(0, 5),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass6: {
-      position: getTIleOffsetPosition(0, 6),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass7: {
-      position: getTIleOffsetPosition(1, 6),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass8: {
-      position: getTIleOffsetPosition(2, 6),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass9: {
-      position: getTIleOffsetPosition(3, 6),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass10: {
-      position: getTIleOffsetPosition(0, 7),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass11: {
-      position: getTIleOffsetPosition(1, 7),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass12: {
-      position: getTIleOffsetPosition(2, 7),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    grass13: {
-      position: getTIleOffsetPosition(3, 7),
-      isBlockade: false,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    rock1: {
-      position: getTIleOffsetPosition(4, 6),
-      isBlockade: true,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    rock2: {
-      position: getTIleOffsetPosition(4, 7),
-      isBlockade: true,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    rock3: {
-      position: getTIleOffsetPosition(4, 8),
-      isBlockade: true,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    rock4: {
-      position: getTIleOffsetPosition(4, 9),
-      isBlockade: true,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    flower1: {
-      position: getTIleOffsetPosition(0, 8),
-      isBlockade: true,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    flower2: {
-      position: getTIleOffsetPosition(0, 9),
-      isBlockade: true,
-      width: 16,
-      height: 16,
-      isTransparent: false,
-    },
-    flower3: {
-      position: getTIleOffsetPosition(1, 8),
-      isBlockade: true,
-      width: 16,
-      height: 32,
-      isTransparent: true,
-    },
-    flower4: {
-      position: getTIleOffsetPosition(2, 8),
-      isBlockade: true,
-      width: 32,
-      height: 32,
-      isTransparent: true,
-    },
-  };
 
   const image = new Image();
   image.src = `./assets/mana_seed/sample.png`;
@@ -234,12 +233,13 @@ const createCanvas_background = (sprite_tile_size = 16) => {
   image.onload = function () {
     //draw faceplate
     let transparent_sprites = [];
+    let occupied_tiles = [];
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        const weight1 = 1 / 6;
-        const weight2 = weight1 / 9;
-        const weight3 = weight2 / 8;
+        const weight1 = 1 / 6; // 5 used
+        const weight2 = weight1 / 9; // 8 used
+        const weight3 = weight2 / 8; // 8
         // console.log(weight1,weight2);
         const tileNumber = weightedRand({
           0: weight1,
@@ -265,7 +265,61 @@ const createCanvas_background = (sprite_tile_size = 16) => {
           20: weight3,
         });
 
-        const tile_sprite = getSpriteFromTileSet(tileNumber);
+        let tile_sprite = getSpriteFromTileSet(tileNumber);
+
+        // overlapping check
+        if (tile_sprite.width > 16 || tile_sprite.height > 16) {
+          const how_many_cols_taken =
+            tile_sprite.height / getSpriteFromTileSet(0).height;
+          const how_many_rows_taken =
+            tile_sprite.width / getSpriteFromTileSet(0).width;
+
+          const scanForOverlap = () => {
+            for (let r_taken = 0; r_taken < how_many_rows_taken; r_taken++) {
+              for (let c_taken = 0; c_taken < how_many_cols_taken; c_taken++) {
+                let isNotOverlapping = true;
+                for (let index = 0; index < occupied_tiles.length; index++) {
+                  if (
+                    occupied_tiles[index].r == r + r_taken &&
+                    occupied_tiles[index].c == c + c_taken
+                  ) {
+                    isNotOverlapping = false;
+                    // console.log(isNotOverlapping,document.querySelector(`[id="${c + c_taken}-${r + r_taken}"]`));
+                  }
+                }
+                // console.log(isNotOverlapping);
+                if (!isNotOverlapping) {
+                  tile_sprite = getSpriteFromTileSet(1);
+                  return;
+                }
+
+                if (
+                  document.querySelector(`[id="${c + c_taken}-${r + r_taken}"]`)
+                ) {
+                  if (tile_sprite.isBlockade)
+                    document
+                      .querySelector(`[id="${c + c_taken}-${r + r_taken}"]`)
+                      .setAttribute("isBlockade", true);
+                  occupied_tiles.push({ r: r + r_taken, c: c + c_taken });
+                }
+
+                // debug
+                // if (
+                //   document.querySelector(
+                //     `[id="${c + c_taken}-${r + r_taken}"]`
+                //   ) &&
+                //   isNotOverlapping
+                // )
+                //   document
+                //     .querySelector(`[id="${c + c_taken}-${r + r_taken}"]`)
+                //     .classList.add("marked");
+              }
+            }
+          };
+          scanForOverlap();
+          // console.log(occupied_tiles);
+        }
+
         if (tile_sprite.isTransparent) {
           const gridPosition = {
             r: r,
@@ -287,6 +341,17 @@ const createCanvas_background = (sprite_tile_size = 16) => {
             temp_tile_sprite.height
           );
         } else {
+          for (let index = 0; index < occupied_tiles.length; index++) {
+            if (occupied_tiles[index].r == r && occupied_tiles[index].c == c) {
+            }
+          }
+
+          if (tile_sprite.isBlockade) {
+            document
+              .querySelector(`[id="${c}-${r}"]`)
+              .setAttribute("isBlokade", true);
+          }
+
           context.drawImage(
             image,
             tile_sprite.position.x,
@@ -327,7 +392,6 @@ const createCanvas_background = (sprite_tile_size = 16) => {
         }
       }
     }
-    
     container.prepend(canvas);
   };
 
@@ -575,11 +639,7 @@ const entity_findPath = (entity = null, position = { x: 0, y: 0 }) => {
 
 initGameEvents();
 
-const getRandomIntInclusive = (min, max) => {
-  const minCeiled = Math.ceil(min);
-  const maxFloored = Math.floor(max);
-  return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
-};
+
 // setTimeout(() => {
 //   for (let index = 0; index < 5; index++) {
 //     entities.push(createEntity({ name: "amander baller", health: 200 }));
