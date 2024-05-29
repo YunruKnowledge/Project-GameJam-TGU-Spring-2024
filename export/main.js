@@ -349,7 +349,7 @@ const createCanvas_background = () => {
           if (tile_sprite.isBlockade) {
             document
               .querySelector(`[id="${c}-${r}"]`)
-              .setAttribute("isBlokade", true);
+              .setAttribute("isBlockade", true);
           }
 
           context.drawImage(
@@ -597,6 +597,8 @@ const entity_findPath = (entity = null, position = { x: 0, y: 0 }) => {
         const lightValue = Number(tile.getAttribute("light_value"));
         // console.log(lightValue);
         row_array.push(2 / (1 - lightValue));
+      } else if (tile.hasAttribute("isBlockade")) {
+        row_array.push(0);
       } else {
         row_array.push(1);
       }
@@ -640,12 +642,12 @@ const entity_findPath = (entity = null, position = { x: 0, y: 0 }) => {
 initGameEvents();
 
 
-// setTimeout(() => {
-//   for (let index = 0; index < 5; index++) {
-//     entities.push(createEntity({ name: "amander baller", health: 200 }));
-//     entity_lookForNewSafeSpot(entities[index]);
-//   }
-//   // entity_lookForNewSafeSpot(entities[1]);
-//   // entity_lookForNewSafeSpot(entities[2]);
-//   setInterval(() => {}, 400);
-// }, 200);
+setTimeout(() => {
+  for (let index = 0; index < 5; index++) {
+    entities.push(createEntity({ name: "amander baller", health: 200 }));
+    entity_lookForNewSafeSpot(entities[index]);
+  }
+  // entity_lookForNewSafeSpot(entities[1]);
+  // entity_lookForNewSafeSpot(entities[2]);
+  setInterval(() => {}, 400);
+}, 200);
