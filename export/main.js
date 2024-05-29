@@ -80,54 +80,166 @@ const createCanvas_background = (sprite_tile_size = 16) => {
   const spriteTileSet = {
     grass1: {
       position: getTIleOffsetPosition(0, 1),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass2: {
       position: getTIleOffsetPosition(0, 2),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass3: {
       position: getTIleOffsetPosition(0, 3),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass4: {
       position: getTIleOffsetPosition(0, 4),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass5: {
       position: getTIleOffsetPosition(0, 5),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass6: {
       position: getTIleOffsetPosition(0, 6),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass7: {
       position: getTIleOffsetPosition(1, 6),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass8: {
       position: getTIleOffsetPosition(2, 6),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass9: {
       position: getTIleOffsetPosition(3, 6),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass10: {
       position: getTIleOffsetPosition(0, 7),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass11: {
       position: getTIleOffsetPosition(1, 7),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass12: {
       position: getTIleOffsetPosition(2, 7),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
     },
     grass13: {
       position: getTIleOffsetPosition(3, 7),
+      isBlockade: false,
+      width: 16,
+      height: 16,
+      isTransparent: false,
+    },
+    rock1: {
+      position: getTIleOffsetPosition(4, 6),
+      isBlockade: true,
+      width: 16,
+      height: 16,
+      isTransparent: false,
+    },
+    rock2: {
+      position: getTIleOffsetPosition(4, 7),
+      isBlockade: true,
+      width: 16,
+      height: 16,
+      isTransparent: false,
+    },
+    rock3: {
+      position: getTIleOffsetPosition(4, 8),
+      isBlockade: true,
+      width: 16,
+      height: 16,
+      isTransparent: false,
+    },
+    rock4: {
+      position: getTIleOffsetPosition(4, 9),
+      isBlockade: true,
+      width: 16,
+      height: 16,
+      isTransparent: false,
+    },
+    flower1: {
+      position: getTIleOffsetPosition(0, 8),
+      isBlockade: true,
+      width: 16,
+      height: 16,
+      isTransparent: false,
+    },
+    flower2: {
+      position: getTIleOffsetPosition(0, 9),
+      isBlockade: true,
+      width: 16,
+      height: 16,
+      isTransparent: false,
+    },
+    flower3: {
+      position: getTIleOffsetPosition(1, 8),
+      isBlockade: true,
+      width: 16,
+      height: 32,
+      isTransparent: true,
+    },
+    flower4: {
+      position: getTIleOffsetPosition(2, 8),
+      isBlockade: true,
+      width: 32,
+      height: 32,
+      isTransparent: true,
     },
   };
+
   const image = new Image();
   image.src = `./assets/mana_seed/sample.png`;
 
   console.log(Object.entries(spriteTileSet)[0][1].position);
   image.onload = function () {
     //draw faceplate
+    let transparent_sprites = [];
+
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const weight1 = 1 / 6;
-        const weight2 = 1 / 6 / 8;
+        const weight2 = weight1 / 9;
+        const weight3 = weight2 / 8;
         // console.log(weight1,weight2);
         const tileNumber = weightedRand({
           0: weight1,
@@ -143,28 +255,85 @@ const createCanvas_background = (sprite_tile_size = 16) => {
           10: weight2,
           11: weight2,
           12: weight2,
+          13: weight3,
+          14: weight3,
+          15: weight3,
+          16: weight3,
+          17: weight3,
+          18: weight3,
+          19: weight3,
+          20: weight3,
         });
 
-        context.drawImage(
-          image,
-          getSpriteFromTileSet(tileNumber).x,
-          getSpriteFromTileSet(tileNumber).y,
-          SPRITE_WIDTH,
-          SPRITE_HEIGHT,
-          SPRITE_WIDTH * r,
-          SPRITE_WIDTH * c,
-          SPRITE_WIDTH,
-          SPRITE_HEIGHT
-        );
+        const tile_sprite = getSpriteFromTileSet(tileNumber);
+        if (tile_sprite.isTransparent) {
+          const gridPosition = {
+            r: r,
+            c: c,
+          };
+          transparent_sprites.push({ tile_sprite, gridPosition });
 
-        container.prepend(canvas);
+          const temp_tileNumber = getRandomIntInclusive(0, 4);
+          const temp_tile_sprite = getSpriteFromTileSet(temp_tileNumber);
+          context.drawImage(
+            image,
+            temp_tile_sprite.position.x,
+            temp_tile_sprite.position.y,
+            temp_tile_sprite.width,
+            temp_tile_sprite.height,
+            SPRITE_WIDTH * r,
+            SPRITE_WIDTH * c,
+            temp_tile_sprite.width,
+            temp_tile_sprite.height
+          );
+        } else {
+          context.drawImage(
+            image,
+            tile_sprite.position.x,
+            tile_sprite.position.y,
+            tile_sprite.width,
+            tile_sprite.height,
+            SPRITE_WIDTH * r,
+            SPRITE_WIDTH * c,
+            tile_sprite.width,
+            tile_sprite.height
+          );
+        }
       }
     }
+
+    // reprint any transparent sprites.
+    if (transparent_sprites.length > 0) {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          for (let index = 0; index < transparent_sprites.length; index++) {
+            if (
+              transparent_sprites[index].gridPosition.r == r &&
+              transparent_sprites[index].gridPosition.c == c
+            ) {
+              context.drawImage(
+                image,
+                transparent_sprites[index].tile_sprite.position.x,
+                transparent_sprites[index].tile_sprite.position.y,
+                transparent_sprites[index].tile_sprite.width,
+                transparent_sprites[index].tile_sprite.height,
+                SPRITE_WIDTH * r,
+                SPRITE_WIDTH * c,
+                transparent_sprites[index].tile_sprite.width,
+                transparent_sprites[index].tile_sprite.height
+              );
+            }
+          }
+        }
+      }
+    }
+    
+    container.prepend(canvas);
   };
 
   // add check for number and string later, if string then search for Obj.entries name
-  const getSpriteFromTileSet = (indexID) => {
-    return Object.entries(spriteTileSet)[indexID][1].position;
+  const getSpriteFromTileSet = (indexID, width = 16, height = 16) => {
+    return Object.entries(spriteTileSet)[indexID][1];
   };
 
   const weightedRand = (spec) => {
