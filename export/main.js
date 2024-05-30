@@ -235,8 +235,10 @@ const createCanvas_unit = (entity) => {
   canvas.width = SPRITE_WIDTH;
   canvas.height = SPRITE_HEIGHT;
   canvas.style.position = `absolute`;
-  const context = canvas.getContext("2d");
 
+  canvas.addEventListener("onFire", () => {});
+
+  const context = canvas.getContext("2d");
   const image = new Image();
   const frame = [`./assets/temp_unit.png`, `./assets/temp_unit_scream.png`];
   image.src = `${frame[0]}`;
@@ -495,6 +497,13 @@ const initGameEvents = () => {
     }
   }
   createCanvas_background();
+
+  setTimeout(() => {
+    createEntity_spawn(1);
+    // entity_lookForNewSafeSpot(entities[1]);
+    // entity_lookForNewSafeSpot(entities[2]);
+    setInterval(() => {}, 400);
+  }, 200);
 };
 
 // SET- MODIFY
@@ -526,18 +535,151 @@ const setLight_Glow = (row, col, radius) => {
   }
 };
 
-const setEntity_canvasPosition = (entity)=> {
+const setEntity_canvasPosition = (entity) => {
   const tile = document.querySelector(
     `[id="${entity.position.y}-${entity.position.x}"]`
   );
   const offset = {
     x: tile.offsetLeft,
-    y: tile.offsetTop
-  }
-  entity.canvas_position = offset
-  entity.canvas.style.top = `${offset.y}px`
-  entity.canvas.style.left = `${offset.x}px`
-}
+    y: tile.offsetTop,
+  };
+  entity.canvas_position = offset;
+  entity.canvas.style.top = `${offset.y}px`;
+  entity.canvas.style.left = `${offset.x}px`;
+};
+
+const setEntity_state = (entity, state, value) => {
+  if (!entity.state) entity.state = {};
+  entity.state[state] = value;
+  // console.log(entity.state);
+};
+
+const setEntity_canvasReDraw = (entity) => {
+  const canvas = entity.canvas;
+  const context = canvas.getContext("2d");
+  const list = [
+    `./assets/temp_unit.png`,
+    `./assets/temp_unit_scream.png`,
+    `./assets/Mini_Fires_2/1/fireSpritesheet.png`,
+  ];
+  const image = new Image();
+  if (entity.state)
+    if (entity.state.onFire) {
+      const fire_sprite = new Image();
+      const image = new Image();
+      image.src = `${list[1]}`;
+      fire_sprite.src = `${list[2]}`;
+
+      fire_sprite.onload = () => {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        // const tile_sprite = getSpriteFromTileSet(0);
+        const offset = getTIleOffsetPosition(0, 0);
+        context.drawImage(
+          fire_sprite,
+          offset.x,
+          offset.y,
+          SPRITE_WIDTH,
+          SPRITE_HEIGHT,
+          0,
+          0,
+          SPRITE_WIDTH,
+          SPRITE_HEIGHT
+        );
+
+        context.drawImage(
+          image,
+          0,
+          0,
+          SPRITE_WIDTH,
+          SPRITE_HEIGHT,
+          0,
+          0,
+          SPRITE_WIDTH,
+          SPRITE_HEIGHT
+        );
+        if (!entity.state.fireRenderLoop) {
+          entity.state.fireRenderDelay = 0;
+          entity.state.fireRenderTick = 0;
+          entity.state.fireRenderLoop = setInterval(() => {
+            if (entity.state.fireRenderDelay > 10) {
+              const canvas = entity.canvas;
+              const context = canvas.getContext("2d");
+              const list = [
+                `./assets/temp_unit.png`,
+                `./assets/temp_unit_scream.png`,
+                `./assets/Mini_Fires_2/1/fireSpritesheet.png`,
+              ];
+              const fire_sprite = new Image();
+              const image = new Image();
+              image.src = `${list[1]}`;
+              fire_sprite.src = `${list[2]}`;
+
+              fire_sprite.onload = () => {
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                // const tile_sprite = getSpriteFromTileSet(0);
+                const offset = getTIleOffsetPosition(
+                  0,
+                  entity.state.fireRenderTick
+                );
+                context.drawImage(
+                  image,
+                  0,
+                  0,
+                  SPRITE_WIDTH,
+                  SPRITE_HEIGHT,
+                  0,
+                  0,
+                  SPRITE_WIDTH,
+                  SPRITE_HEIGHT
+                );
+
+                context.drawImage(
+                  fire_sprite,
+                  offset.x,
+                  offset.y,
+                  SPRITE_WIDTH,
+                  SPRITE_HEIGHT,
+                  0,
+                  0,
+                  SPRITE_WIDTH,
+                  SPRITE_HEIGHT
+                );
+                entity.state.fireRenderTick = entity.state.fireRenderTick + 1;
+                if (entity.state.fireRenderTick >= 30) {
+                  clearInterval(entity.state.fireRenderLoop);
+                  delete entity.state.fireRenderLoop;
+                  delete entity.state.fireRenderDelay;
+                  delete entity.state.fireRenderTick;
+                }
+              };
+            }
+            entity.state.fireRenderDelay = entity.state.fireRenderDelay + 1;
+          }, entity.stat.speed / 30);
+        }
+      };
+
+      return;
+    }
+
+  image.src = `${list[0]}`;
+  image.onload = () => {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    // const tile_sprite = getSpriteFromTileSet(0);
+    const offset = getTIleOffsetPosition(0, 0);
+
+    context.drawImage(
+      image,
+      offset.x,
+      offset.y,
+      SPRITE_WIDTH,
+      SPRITE_HEIGHT,
+      0,
+      0,
+      SPRITE_WIDTH,
+      SPRITE_HEIGHT
+    );
+  };
+};
 
 // ENTITY - ENTITIES // uhh somewhere x and y is switched, should've gone for rows and cols instead :P
 const entity_move = async (entity, position_x, position_y) => {
@@ -563,14 +705,15 @@ const entity_move = async (entity, position_x, position_y) => {
     );
     tile.classList.add("ent_test");
     console.log(tile.offsetLeft, tile.offsetTop);
-    setEntity_canvasPosition(entity)
+    setEntity_canvasPosition(entity);
 
     // check for light, to re-path
     if (current_path_index > 5 && tile.hasAttribute("isLit")) {
       entity_lookForNewSafeSpot(entity);
       clearPathingMove();
     } else if (tile.hasAttribute("isLit")) {
-      // entity.state.onFire = true
+      setEntity_state(entity, "onFire", true);
+      setEntity_canvasReDraw(entity);
 
       const damage = light_damage * Number(tile.getAttribute("light_value"));
       entity.stat.health = entity.stat.health - damage;
@@ -579,6 +722,9 @@ const entity_move = async (entity, position_x, position_y) => {
         clearPathingMove({ clearSelf: true, deleteSelf: true });
         console.warn(entity, "stopped, quite DELETED");
       }
+    } else {
+      setEntity_state(entity, "onFire", false);
+      setEntity_canvasReDraw(entity);
     }
 
     // previous tile
@@ -606,13 +752,13 @@ const entity_move = async (entity, position_x, position_y) => {
         tile.classList.remove("ent_test");
       }
       if (settings.deleteSelf) {
-        entity.canvas.remove()
+        entity.canvas.remove();
         entities = entities.filter(function (obj) {
           return obj.id !== entity.id;
         });
         console.log(entities);
       }
-      clearTimeout(interval);
+      clearInterval(interval);
       return;
     }
   }, entity.stat.speed);
@@ -714,10 +860,3 @@ const entity_findPath = (entity = null, position = { x: 0, y: 0 }) => {
 };
 
 initGameEvents();
-
-setTimeout(() => {
-  createEntity_spawn(1);
-  // entity_lookForNewSafeSpot(entities[1]);
-  // entity_lookForNewSafeSpot(entities[2]);
-  setInterval(() => {}, 400);
-}, 200);
