@@ -1,6 +1,7 @@
 const rows = 40;
 const cols = 40;
-const light_radius = 8;
+const light_radius = 6;
+const light_damage = 20;
 
 const SPRITE_WIDTH = 16;
 const SPRITE_HEIGHT = 16;
@@ -13,12 +14,12 @@ const getRandomIntInclusive = (min, max) => {
   return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
 };
 
-const getTIleOffsetPosition = (col, row)=> {
+const getTIleOffsetPosition = (col, row) => {
   return {
     x: SPRITE_BORDER_WIDTH + col * (SPRITE_SPACING_WIDTH + SPRITE_WIDTH),
     y: SPRITE_BORDER_WIDTH + row * (SPRITE_SPACING_WIDTH + SPRITE_HEIGHT),
   };
-}
+};
 
 const spriteTileSet = {
   grass1: {
@@ -192,8 +193,17 @@ const createEntity = ({
     },
     id: createUUID(),
   };
-  console.log(entity);
+  // console.log(entity);
   return entity;
+};
+
+const createEntity_spawn = (amount) => {
+  // later - unit types
+  for (let index = 0; index < amount; index++) {
+    entities.push(createEntity({ name: `vampire_unit`, health: 200 }));
+    createCanvas_unit(entities[index]);
+    entity_lookForNewSafeSpot(entities[index]);
+  }
 };
 
 const createUUID = () => {
@@ -218,18 +228,62 @@ const createUUID = () => {
   });
 };
 
+const createCanvas_unit = (entity) => {
+  const container = document.querySelector(".game_display_container");
+  const grid = document.querySelector(".mapGrid");
+  const canvas = document.createElement("canvas");
+  canvas.width = SPRITE_WIDTH;
+  canvas.height = SPRITE_HEIGHT;
+  canvas.style.position = `absolute`;
+  const context = canvas.getContext("2d");
+
+  const image = new Image();
+  const frame = [`./assets/temp_unit.png`, `./assets/temp_unit_scream.png`];
+  image.src = `${frame[0]}`;
+  image.onload = () => {
+    // const tile_sprite = getSpriteFromTileSet(0);
+    const offset = getTIleOffsetPosition(0, 0);
+
+    context.drawImage(
+      image,
+      offset.x,
+      offset.y,
+      SPRITE_WIDTH,
+      SPRITE_HEIGHT,
+      0,
+      0,
+      SPRITE_WIDTH,
+      SPRITE_HEIGHT
+    );
+  };
+
+  const tilePosition = {
+    x: document.querySelector(
+      `[id="${entity.position.x}-${entity.position.y}"]`
+    ).offsetLeft,
+    y: document.querySelector(
+      `[id="${entity.position.x}-${entity.position.y}"]`
+    ).offsetTop,
+  };
+  entity.canvas = canvas;
+  entity.canvas_position = tilePosition;
+  console.log(entity);
+  container.insertBefore(canvas, grid);
+};
+
 const createCanvas_background = () => {
   const container = document.querySelector(".game_display_container");
   const canvas = document.createElement("canvas");
   canvas.width = container.clientWidth;
   canvas.height = container.clientHeight;
   canvas.style.position = `absolute`;
+  canvas.style.zIndex = `-1`;
   const context = canvas.getContext("2d");
 
   const image = new Image();
   image.src = `./assets/mana_seed/sample.png`;
 
-  console.log(Object.entries(spriteTileSet)[0][1].position);
+  // console.log(Object.entries(spriteTileSet)[0][1].position);
   image.onload = function () {
     //draw faceplate
     let transparent_sprites = [];
@@ -450,7 +504,7 @@ const setLight_Glow = (row, col, radius) => {
     el.removeAttribute("isLit");
     el.removeAttribute("light_value");
     el.style.outline = ``;
-    // el.style.backgroundColor = "";
+    el.style.backgroundColor = "";
   });
 
   for (let r = row - radius; r <= row + radius; r++) {
@@ -458,10 +512,12 @@ const setLight_Glow = (row, col, radius) => {
       if (r >= 0 && r < rows && c >= 0 && c < cols) {
         const distance = Math.sqrt((r - row) ** 2 + (c - col) ** 2);
         if (distance <= radius) {
-          const intensity = 1 - distance / (radius + 1);
+          const intensity = 1 - (distance * 1.15) / (radius + 1);
           const tile = document.getElementById(`${r}-${c}`);
-          tile.style.outline = `1px dashed rgba(255, 255, 255, ${intensity})`;
-          // tile.style.backgroundColor = `rgba(255, 255, 255, ${intensity})`;
+          // tile.style.outline = `1px dashed rgba(255, 255, 255, ${intensity})`;
+          tile.style.backgroundColor = `rgba(0, 0, 5, ${
+            0.98 - intensity * 1.2
+          })`;
           tile.setAttribute("isLit", true);
           tile.setAttribute("light_value", intensity);
         }
@@ -470,13 +526,26 @@ const setLight_Glow = (row, col, radius) => {
   }
 };
 
-// ENTITY - ENTITIES
+const setEntity_canvasPosition = (entity)=> {
+  const tile = document.querySelector(
+    `[id="${entity.position.y}-${entity.position.x}"]`
+  );
+  const offset = {
+    x: tile.offsetLeft,
+    y: tile.offsetTop
+  }
+  entity.canvas_position = offset
+  entity.canvas.style.top = `${offset.y}px`
+  entity.canvas.style.left = `${offset.x}px`
+}
+
+// ENTITY - ENTITIES // uhh somewhere x and y is switched, should've gone for rows and cols instead :P
 const entity_move = async (entity, position_x, position_y) => {
   const path = await entity_findPath(entity, {
     x: position_x,
     y: position_y,
   });
-  console.log(path);
+  // console.log(path);
 
   let current_path_index = 0;
   const interval = setInterval(() => {
@@ -493,13 +562,17 @@ const entity_move = async (entity, position_x, position_y) => {
       `[id="${path[current_path_index].x}-${path[current_path_index].y}"]`
     );
     tile.classList.add("ent_test");
+    console.log(tile.offsetLeft, tile.offsetTop);
+    setEntity_canvasPosition(entity)
 
     // check for light, to re-path
     if (current_path_index > 5 && tile.hasAttribute("isLit")) {
       entity_lookForNewSafeSpot(entity);
       clearPathingMove();
     } else if (tile.hasAttribute("isLit")) {
-      const damage = 20 * Number(tile.getAttribute("light_value"));
+      // entity.state.onFire = true
+
+      const damage = light_damage * Number(tile.getAttribute("light_value"));
       entity.stat.health = entity.stat.health - damage;
       console.log(entity.stat.health);
       if (entity.stat.health <= 0) {
@@ -533,6 +606,7 @@ const entity_move = async (entity, position_x, position_y) => {
         tile.classList.remove("ent_test");
       }
       if (settings.deleteSelf) {
+        entity.canvas.remove()
         entities = entities.filter(function (obj) {
           return obj.id !== entity.id;
         });
@@ -541,7 +615,7 @@ const entity_move = async (entity, position_x, position_y) => {
       clearTimeout(interval);
       return;
     }
-  }, 80);
+  }, entity.stat.speed);
 };
 
 const entity_findNewSafeSpot = async (returnPostitions) => {
@@ -569,8 +643,8 @@ const entity_findNewSafeSpot = async (returnPostitions) => {
       // return safeSpots[randomIndex];
       return new Promise((resolve) => {
         const randomIndex = Math.floor(Math.random() * safeSpots.length);
-        console.log(safeSpots, randomIndex);
-        console.log(safeSpots[randomIndex]);
+        // console.log(safeSpots, randomIndex);
+        // console.log(safeSpots[randomIndex]);
         resolve(safeSpots[randomIndex]);
       });
     } else {
@@ -641,12 +715,8 @@ const entity_findPath = (entity = null, position = { x: 0, y: 0 }) => {
 
 initGameEvents();
 
-
 setTimeout(() => {
-  for (let index = 0; index < 5; index++) {
-    entities.push(createEntity({ name: "amander baller", health: 200 }));
-    entity_lookForNewSafeSpot(entities[index]);
-  }
+  createEntity_spawn(1);
   // entity_lookForNewSafeSpot(entities[1]);
   // entity_lookForNewSafeSpot(entities[2]);
   setInterval(() => {}, 400);
