@@ -2,16 +2,45 @@ const rows = 40;
 const cols = 40;
 const light_radius = 6;
 const light_damage = 20;
+const entity_limit = 10;
 
 const SPRITE_WIDTH = 16;
 const SPRITE_HEIGHT = 16;
 const SPRITE_BORDER_WIDTH = 0;
 const SPRITE_SPACING_WIDTH = 0;
 
+// math things...
+
 const getRandomIntInclusive = (min, max) => {
   const minCeiled = Math.ceil(min);
   const maxFloored = Math.floor(max);
   return Math.floor(Math.random() * (maxFloored - minCeiled + 1) + minCeiled); // The maximum is inclusive and the minimum is inclusive
+};
+
+const getRandomBorderPosition = () => {
+  const randomInt = getRandomIntInclusive(1, 4);
+  let position = {};
+  if (randomInt == 1) {
+    // top
+    position.x = getRandomIntInclusive(0, cols - 1);
+    position.y = rows - rows;
+  }
+  if (randomInt == 2) {
+    // right
+    position.x = cols - 1;
+    position.y = getRandomIntInclusive(0, rows - 1);
+  }
+  if (randomInt == 3) {
+    // bottom
+    position.x = getRandomIntInclusive(0, cols - 1);
+    position.y = rows - 1;
+  }
+  if (randomInt == 4) {
+    // left
+    position.x = cols - cols;
+    position.y = getRandomIntInclusive(0, rows - 1);
+  }
+  return position;
 };
 
 const getTIleOffsetPosition = (col, row) => {
@@ -171,6 +200,7 @@ const spriteTileSet = {
   },
 };
 
+// variables
 let entities = [];
 let score = {
   points: 0,
@@ -243,7 +273,13 @@ const createEntity = ({
 const createEntity_spawn_multiple = (amount, unit) => {
   // later - unit types
   for (let index = 0; index < amount; index++) {
-    const entity = createEntity({ name: `vampire_unit`, health: 200 , position_x: 1, position_y:39})
+    const position = getRandomBorderPosition();
+    const entity = createEntity({
+      name: `vampire_unit`,
+      health: 200,
+      position_x: position.x,
+      position_y: position.y,
+    });
     entities.push(entity);
     createCanvas_unit(entity);
     entity_lookForNewSafeSpot(entity);
@@ -750,8 +786,8 @@ const entity_move = async (entity, position_x, position_y) => {
     const tile = document.querySelector(
       `[id="${path[current_path_index].x}-${path[current_path_index].y}"]`
     );
-    tile.classList.add("ent_test");
-    console.log(tile.offsetLeft, tile.offsetTop);
+    // tile.classList.add("ent_test");
+    // console.log(tile.offsetLeft, tile.offsetTop);
     setEntity_canvasPosition(entity);
 
     // check for light, to re-path
@@ -764,7 +800,7 @@ const entity_move = async (entity, position_x, position_y) => {
 
       const damage = light_damage * Number(tile.getAttribute("light_value"));
       entity.stat.health = entity.stat.health - damage;
-      console.log(entity.stat.health);
+      // console.log(entity.stat.health);
       if (entity.stat.health <= 0) {
         clearPathingMove({ clearSelf: true, deleteSelf: true });
         setScore_kills(entity.name);
@@ -803,6 +839,7 @@ const entity_move = async (entity, position_x, position_y) => {
       if (settings.deleteSelf) {
         entity.canvas.remove();
         entities = entities.filter(function (obj) {
+          clearInterval(interval);
           return obj.id !== entity.id;
         });
         console.log(entities);
@@ -887,21 +924,21 @@ const entity_findPath = (entity = null, position = { x: 0, y: 0 }) => {
     startWithWeight,
     endWithWeight
   );
-  const [...listOfMarkedTiles] = document.querySelectorAll(".mapGrid .marked");
-  listOfMarkedTiles.forEach((el) => el.classList.remove("marked"));
-  for (let index = 0; index < resultWithWeight.length; index++) {
-    if (index == 0) {
-      // include starting tile
-      const tile = document.querySelector(
-        `[id="${resultWithWeight[index].parent.x}-${resultWithWeight[index].parent.y}"]`
-      );
-      tile.classList.add("marked");
-    }
-    const tile = document.querySelector(
-      `[id="${resultWithWeight[index].x}-${resultWithWeight[index].y}"]`
-    );
-    tile.classList.add("marked");
-  }
+  // const [...listOfMarkedTiles] = document.querySelectorAll(".mapGrid .marked");
+  // listOfMarkedTiles.forEach((el) => el.classList.remove("marked"));
+  // for (let index = 0; index < resultWithWeight.length; index++) {
+  //   if (index == 0) {
+  //     // include starting tile
+  //     const tile = document.querySelector(
+  //       `[id="${resultWithWeight[index].parent.x}-${resultWithWeight[index].parent.y}"]`
+  //     );
+  //     tile.classList.add("marked");
+  //   }
+  //   const tile = document.querySelector(
+  //     `[id="${resultWithWeight[index].x}-${resultWithWeight[index].y}"]`
+  //   );
+  //   tile.classList.add("marked");
+  // }
   return new Promise((resolve) => {
     resolve(resultWithWeight);
   });
@@ -924,15 +961,18 @@ const initGameEvents = () => {
     }
     if (loaded_total == load_length) {
       console.log(load_tracker, loaded_total, load_length);
-
-      document.addEventListener("click", () => {
-        createEntity_spawn_multiple(1);
-      });
+      createEntity_spawn_init();
       clearInterval(loader);
     }
   }, 400);
 
-  
+  const createEntity_spawn_init = () => {
+    const interval = setInterval(() => {
+      if (entities.length < entity_limit) {
+        createEntity_spawn_multiple(1);
+      }
+    }, 400);
+  };
 };
 
 initGameEvents();
