@@ -3,6 +3,7 @@ const cols = 40;
 const light_radius = 6;
 const light_damage = 20;
 const entity_limit = 10;
+const game_defeat_time = 1; //seconds //currently debugging
 
 const SPRITE_WIDTH = 16;
 const SPRITE_HEIGHT = 16;
@@ -211,6 +212,7 @@ let load_tracker = {
   gridMap: false,
   background: false,
 };
+let global_timers = {};
 
 // CREATE FUNCTIONS
 const createGame_GridTiles = () => {
@@ -229,7 +231,7 @@ const createGame_GridTiles = () => {
   grid.style.display = `grid`;
   grid.style.gridTemplateRows = `repeat(${rows},${tileWidth}px)`;
   grid.style.gridTemplateColumns = `repeat(${cols},${tileWidth}px)`;
-  container.appendChild(grid);
+  container.prepend(grid);
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -549,6 +551,12 @@ const createCanvas_background = () => {
 };
 
 // SET- MODIFY
+const setUI_loadingValue = (loaded, required) => {
+  const element = document.querySelector(".start_loadingValue");
+  element.children[0].innerText = `${loaded}`;
+  element.children[1].innerText = `${required}`;
+};
+
 const setLight_Glow = (row, col, radius) => {
   // Clear
   document.querySelectorAll(".mapGrid div").forEach((el) => {
@@ -776,6 +784,11 @@ const entity_move = async (entity, position_x, position_y) => {
   const interval = setInterval(() => {
     // console.log(path[current_path_index]);
 
+    // health double check
+    if (entity.stat.health <= 0) {
+      entity_death();
+    }
+
     if (current_path_index >= path.length) {
       entity_lookForNewSafeSpot(entity);
       clearPathingMove();
@@ -802,47 +815,51 @@ const entity_move = async (entity, position_x, position_y) => {
       entity.stat.health = entity.stat.health - damage;
       // console.log(entity.stat.health);
       if (entity.stat.health <= 0) {
-        clearPathingMove({ clearSelf: true, deleteSelf: true });
-        setScore_kills(entity.name);
-        setScore_points_additive(entity.points);
-        console.warn(entity, "stopped, quite DELETED");
+        entity_death();
       }
     } else {
       setEntity_state(entity, "onFire", false);
       setEntity_canvasReDraw(entity);
     }
 
-    // previous tile
-    if (current_path_index) {
-      const prev_tile = document.querySelector(
-        `[id="${path[current_path_index - 1].x}-${
-          path[current_path_index - 1].y
-        }"]`
-      );
-      prev_tile.classList.remove("ent_test");
-    } else {
-      const prev_tile = document.querySelector(
-        `[id="${path[current_path_index].parent.x}-${path[current_path_index].parent.y}"]`
-      );
-      prev_tile.classList.remove("ent_test");
-    }
+    // // previous tile
+    // if (current_path_index) {
+    //   const prev_tile = document.querySelector(
+    //     `[id="${path[current_path_index - 1].x}-${
+    //       path[current_path_index - 1].y
+    //     }"]`
+    //   );
+    //   prev_tile.classList.remove("ent_test");
+    // } else {
+    //   const prev_tile = document.querySelector(
+    //     `[id="${path[current_path_index].parent.x}-${path[current_path_index].parent.y}"]`
+    //   );
+    //   prev_tile.classList.remove("ent_test");
+    // }
 
     // console.log(tile);
     current_path_index++;
+    function entity_death() {
+      clearPathingMove({ deleteSelf: true });
+      setScore_kills(entity.name);
+      setScore_points_additive(entity.points);
+      console.warn(entity, "stopped, quite DELETED");
+    }
+
     function clearPathingMove(
       settings = { clearSelf: false, deleteSelf: false }
     ) {
       // entity_move(entity);
-      if (settings.clearSelf) {
-        tile.classList.remove("ent_test");
-      }
+      // if (settings.clearSelf) {
+      //   tile.classList.remove("ent_test");
+      // }
       if (settings.deleteSelf) {
         entity.canvas.remove();
         entities = entities.filter(function (obj) {
           clearInterval(interval);
           return obj.id !== entity.id;
         });
-        console.log(entities);
+        // console.log(entities);
       }
       clearInterval(interval);
       return;
@@ -947,6 +964,15 @@ const entity_findPath = (entity = null, position = { x: 0, y: 0 }) => {
 
 // GENERAL
 const initGameEvents = () => {
+  //UI
+  document.querySelector(".end_UI").classList.add("hidden");
+  document.querySelector(".start_menu").classList.add("hidden");
+  document.querySelector(".start_UI").classList.remove("hidden");
+  document.querySelector(".start_loadingScreen").classList.remove("hidden");
+  reset_UI_values()
+
+  //game
+  reset_gameValues();
   createGame_GridTiles();
   createCanvas_background();
 
@@ -959,20 +985,124 @@ const initGameEvents = () => {
         if (load_tracker[key]) loaded_total++;
       }
     }
+    console.log(load_tracker, loaded_total, load_length);
+    setUI_loadingValue(loaded_total, load_length);
     if (loaded_total == load_length) {
-      console.log(load_tracker, loaded_total, load_length);
       createEntity_spawn_init();
       clearInterval(loader);
+      document.querySelector(".start_UI").classList.add("hidden");
+      document.querySelector(".end_UI").classList.add("hidden");
+      document.querySelector(".start_loadingScreen").classList.add("hidden");
     }
   }, 400);
 
   const createEntity_spawn_init = () => {
-    const interval = setInterval(() => {
+    const spawnInterval = setInterval(() => {
       if (entities.length < entity_limit) {
         createEntity_spawn_multiple(1);
+
+        if (global_timers.entityLimitExceed) {
+          clearInterval(global_timers.entityLimitExceed);
+          delete global_timers.entityLimitExceed;
+        }
+      } else {
+        if (!global_timers.entityLimitExceed) {
+          global_timers.entityLimitExceed = setTimeout(() => {
+            clearInterval(spawnInterval);
+            clearInterval(global_timers.entityLimitExceed);
+            delete global_timers.entityLimitExceed;
+
+            const final_score = score;
+            const UI_stats_container = document.querySelector(".end_stats");
+            for (const key in final_score) {
+              if (Object.hasOwnProperty.call(final_score, key)) {
+                const text = document.createElement("p");
+                if (key === `kill_types`) {
+                  //need loop later?
+                  // console.log(
+                  //   final_score[key],
+                  //   Object.entries(final_score[key])[0][1]
+                  // );
+                  if (Object.keys(final_score[key])[0])
+                    text.innerText = `${Object.keys(final_score[key])[0]}: ${
+                      Object.entries(final_score[key])[0][1]
+                    }`;
+                  UI_stats_container.appendChild(text);
+                } else {
+                  if (key === `kills` && final_score[key] > 50) {
+                    const victory_message =
+                      document.querySelector(".victory_message");
+                    victory_message.innerText = `But you did a valorant effort!`;
+                  } else if (key === `kills` && final_score[key] > 40) {
+                    const victory_message =
+                      document.querySelector(".victory_message");
+                    victory_message.innerText = `But you almost managed to eradicated them!`;
+                  } else if (key === `kills` && final_score[key] > 30) {
+                    const victory_message =
+                      document.querySelector(".victory_message");
+                    victory_message.innerText = `But atleast it were for democracy!`;
+                  } else if (key === `kills` && final_score[key] > 20) {
+                    const victory_message =
+                      document.querySelector(".victory_message");
+                    victory_message.innerText = `But atleast you did your part.`;
+                  } else if (key === `kills` && final_score[key] > 10) {
+                    const victory_message =
+                      document.querySelector(".victory_message");
+                    victory_message.innerText = `But still very well done job!`;
+                  } else if (key === `kills` && final_score[key] <= 10) {
+                    const victory_message =
+                      document.querySelector(".victory_message");
+                    victory_message.innerText = `Better luck next time... redo history.`;
+                  }
+
+                  text.innerText = `${key}: ${final_score[key]}`;
+                  UI_stats_container.appendChild(text);
+                }
+              }
+            }
+
+            for (let index = 0; index < entities.length; index++) {
+              // console.log(entities[index]);
+              entities[index].stat.health = -1;
+            }
+
+            setUI_loadingValue(0, Object.entries(load_tracker).length);
+
+            const [...all_canvas] = document.querySelectorAll("canvas");
+            console.log(all_canvas);
+            all_canvas.forEach((el) => {
+              el.remove();
+            });
+            console.log(document.querySelector(".mapGrid"));
+            document.querySelector(".mapGrid").remove();
+            document.querySelector(".end_UI").classList.remove("hidden");
+          }, game_defeat_time * 1000);
+        }
       }
     }, 400);
   };
 };
 
-initGameEvents();
+const reset_gameValues = () => {
+  setScore_points_additive(score.points * -1);
+  score.kills = score.kills - score.kills;
+  score.kill_types = {};
+
+  for (const key in load_tracker) {
+    if (Object.hasOwnProperty.call(load_tracker, key)) {
+      load_tracker[key] = false;
+    }
+  }
+};
+
+const reset_UI_values = ()=> {
+  const UI_stats_container = document.querySelector(".end_stats");
+  console.log(UI_stats_container);
+  const [...UI_stats_elements] = UI_stats_container.children
+  console.log(UI_stats_elements);
+  UI_stats_elements.forEach((element,index) => {
+    console.log(element, index);
+    if (index)
+      element.remove()
+  });
+}

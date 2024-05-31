@@ -18,7 +18,10 @@ body,html
     display: flex
     flex-direction: column
     font-family: 'monogram', 'roboto', 'aria'
-    font-size: 20px
+    font-size: max(1rem, 24px)
+    image-rendering: pixelated
+    img, canvas
+        image-rendering: pixelated
 
 .game_display_container
     position: relative
@@ -26,21 +29,122 @@ body,html
     width: 640px
     height: 640px
     margin: auto
-    *
-        // outline: 1px dashed blue
+    // *
+    //     outline: 1px dashed blue
 
-    >div>div
-        &:hover
-            transform: scale(120%)
-            transition: transform 200ms
+    // >div>div
+    //     &:hover
+    //         transform: scale(120%)
+    //         transition: transform 200ms
 
     >div
         position: absolute
 
+.start_UI
+    width: 100%
+    height: 100%
+    display: flex
+    flex-direction: column
+
+.UI_btn
+    display: flex
+    justify-content: center
+    gap: 0.25em
+    width: max-content
+    padding: 0.25em 1em
+    text-align: center
+    -webkit-user-select: none
+    user-select: none
+    cursor: pointer
+
+    transform: skew(-20deg)
+
+    background-color: rgba(black, 0.66)
+    -webkit-backdrop-filter: blur(3px)
+    backdrop-filter: blur(3px)
+    color: white
+    >*
+        transform: skew(20deg)
+    >p
+        translate: 0 -0.05em
+    >img
+        height: 0.75em
+        margin: auto 0
+
+.start_menu
+    margin: auto
+    width: max-content
+    display: flex
+    flex-direction: column
+    gap: .25em
+
+.start_credits
+    display: flex
+    flex-direction: column
+    padding: min(24px, 1em)
+    >div
+        border-radius: 6px
+        padding: 0.75em
+        background-color: rgba(black, 0.66)
+        -webkit-backdrop-filter: blur(3px)
+        backdrop-filter: blur(3px)
+        color: white
+        p
+            line-height: 0.66em
+            &:not(:first-of-type)
+                margin-top: 0.25em
+            >span:not(:first-of-type)
+                font-style: italic
+        a:visited
+            color: white
+    >span:last-of-type
+        margin-top: 0.5em
+        margin-left: auto
+        margin-right: 0.5em
+
+.start_loadingScreen
+    background-color: white
+    display: flex
+    flex-direction: column
+    height: 100%
+    width: 100%
+    justify-content: center
+    align-items: center
+    >p
+        width: max-content
+
+.end_UI
+    width: 100%
+    height: 100%
+    >div
+        display: flex
+        flex-direction: column
+        align-items: center
+        justify-content: center
+        gap: 0.5em
+        width: 100%
+        height: 100%
+        >div
+            border-radius: 6px
+            padding: 0.75em
+            background-color: rgba(black, 0.66)
+            -webkit-backdrop-filter: blur(3px)
+            backdrop-filter: blur(3px)
+            color: white
+            line-height: 0.66em
+            >:not(:first-of-type)
+                margin-top: 0.25em
+        >span:first-of-type
+            margin-top: 1em
+
+
+.hidden
+    display: none
+
 .mapGrid
     >div
-        // background-color: rgba(0, 0, 8, 0.95)
+        background-color: rgba(0, 0, 8, 0.95)
 .marked
     outline: red 2px solid !important
 .ent_test
-    // background-color: yellow
+    background-color: yellow

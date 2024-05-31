@@ -10,28 +10,102 @@
   </head>
   <body>
     <!-- how did the vampires die!? -->
-    <div width="640" height="640" class="game_display_container"></div>
+    <div width="640" height="640" class="game_display_container">
+      <div class="start_UI">
+        <div class="start_menu">
+          <span class="UI_btn" onclick="initGameEvents()"
+            ><p>Start</p>
+            <img src="./assets/Lucid_v1-2/SVG/Shadow/Play.svg" alt=""
+          /></span>
+          <span class="UI_btn" onclick="toggleUI_menu()"><p>Credits</p></span>
+        </div>
+
+        <div class="start_credits hidden">
+          <div>
+            <p>Credits:</p>
+            <p>
+              Most* of the lincenses are in public domain, feel free to use but
+              double check lincense.
+            </p>
+            <p>
+              Source code is available on
+              <a
+                href="https://github.com/YunruKnowledge/Project-GameJam-TGU-Spring-2024"
+                >GitHub</a
+              >.
+            </p>
+            <p><span>Font: </span><span>DATAGOBLIN</span></p>
+            <p>
+              <span>Art assets: </span><span>Seliel the Shaper</span>,
+              <span>Midhil M.</span>, <span>XYEzawr</span>
+            </p>
+            <p><span>Sounds: </span><span>Shaperforms</span></p>
+            <p>
+              <span>Used code snippets/libraries: </span
+              ><span>Brian Grinstead (Astar.js)</span>
+            </p>
+            <p>Other assets/code are done by me.</p>
+            <p>*Shaperforms's SFX are <i>use</i> only.</p>
+            <p>*Seliel the Shaper's ManaSeed sprites are per puchase.</p>
+          </div>
+          <span class="UI_btn" onclick="toggleUI_menu()">
+            <img
+              src="./assets/Lucid_v1-2/SVG/Shadow/Chevron-Arrow-Left.svg"
+              alt=""
+            />
+            <p>Back</p>
+          </span>
+        </div>
+
+        <div class="start_loadingScreen hidden">
+          <p>Loading...</p>
+          <p class="start_loadingValue"><span>0</span>/<span>100</span></p>
+        </div>
+      </div>
+
+      <div class="end_UI hidden">
+        <div>
+          <div>
+            <div class="end_message">
+              <p>You've lost! There were too many enemies!!</p>
+              <p class="victory_message"></p>
+            </div>
+            <div class="end_stats">
+              <p><b>Stats:</b></p>
+            </div>
+          </div>
+
+          <span class="UI_btn" onclick="initGameEvents()">
+            <p>Restart</p>
+            <img
+              src="./assets/Lucid_v1-2/SVG/Shadow/Redo.svg"
+              alt=""
+            />
+          </span>
+          <span class="UI_btn" onclick="toggleUI_backToMenu()">
+            <img
+              src="./assets/Lucid_v1-2/SVG/Shadow/Chevron-Arrow-Left.svg"
+              alt=""
+            />
+            <p>Back</p>
+          </span>
+        </div>
+      </div>
+    </div>
     <div>
       <span id="game_score_text"></span>
     </div>
-    <div>
-      <p>Credits:</p>
-      <p>
-        Most lincenses are in public domain, feel free to use but double check
-        lincense.
-      </p>
-      <p>Source code is available on GitHub.</p>
-      <p><span>Font: </span><span>DATAGOBLIN</span></p>
-      <p>
-        <span>Art assets: </span><span>Seliel the Shaper</span>,
-        <span>Midhil M.</span>, <span>XYEzawr</span>
-      </p>
-      <p><span>Sounds: </span><span>Shaperforms</span></p>
-      <p>
-        <span>Used code snippets/libraries: </span
-        ><span>Brian Grinstead (Astar.js)</span>
-      </p>
-      <p>Other assets/code are done by me.</p>
-    </div>
+    <script>
+      const toggleUI_menu = () => {
+        document.querySelector(".start_credits").classList.toggle("hidden");
+        document.querySelector(".start_menu").classList.toggle("hidden");
+      };
+
+      const toggleUI_backToMenu = ()=> {
+        document.querySelector(".end_UI").classList.toggle("hidden");
+        document.querySelector(".start_UI").classList.toggle("hidden");
+        document.querySelector(".start_menu").classList.toggle("hidden");
+      }
+    </script>
   </body>
 </html>

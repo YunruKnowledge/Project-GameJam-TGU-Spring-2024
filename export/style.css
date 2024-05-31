@@ -16,7 +16,11 @@ body, html {
   display: flex;
   flex-direction: column;
   font-family: "monogram", "roboto", "aria";
-  font-size: 20px;
+  font-size: max(1rem, 24px);
+  image-rendering: pixelated;
+}
+body img, body canvas, html img, html canvas {
+  image-rendering: pixelated;
 }
 
 .game_display_container {
@@ -26,16 +30,139 @@ body, html {
   height: 640px;
   margin: auto;
 }
-.game_display_container > div > div:hover {
-  transform: scale(120%);
-  transition: transform 200ms;
-}
 .game_display_container > div {
   position: absolute;
 }
 
+.start_UI {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.UI_btn {
+  display: flex;
+  justify-content: center;
+  gap: 0.25em;
+  width: max-content;
+  padding: 0.25em 1em;
+  text-align: center;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: pointer;
+  transform: skew(-20deg);
+  background-color: rgba(0, 0, 0, 0.66);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  color: white;
+}
+.UI_btn > * {
+  transform: skew(20deg);
+}
+.UI_btn > p {
+  translate: 0 -0.05em;
+}
+.UI_btn > img {
+  height: 0.75em;
+  margin: auto 0;
+}
+
+.start_menu {
+  margin: auto;
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+}
+
+.start_credits {
+  display: flex;
+  flex-direction: column;
+  padding: min(24px, 1em);
+}
+.start_credits > div {
+  border-radius: 6px;
+  padding: 0.75em;
+  background-color: rgba(0, 0, 0, 0.66);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  color: white;
+}
+.start_credits > div p {
+  line-height: 0.66em;
+}
+.start_credits > div p:not(:first-of-type) {
+  margin-top: 0.25em;
+}
+.start_credits > div p > span:not(:first-of-type) {
+  font-style: italic;
+}
+.start_credits > div a:visited {
+  color: white;
+}
+.start_credits > span:last-of-type {
+  margin-top: 0.5em;
+  margin-left: auto;
+  margin-right: 0.5em;
+}
+
+.start_loadingScreen {
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+.start_loadingScreen > p {
+  width: max-content;
+}
+
+.end_UI {
+  width: 100%;
+  height: 100%;
+}
+.end_UI > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  width: 100%;
+  height: 100%;
+}
+.end_UI > div > div {
+  border-radius: 6px;
+  padding: 0.75em;
+  background-color: rgba(0, 0, 0, 0.66);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  color: white;
+  line-height: 0.66em;
+}
+.end_UI > div > div > :not(:first-of-type) {
+  margin-top: 0.25em;
+}
+.end_UI > div > span:first-of-type {
+  margin-top: 1em;
+}
+
+.hidden {
+  display: none;
+}
+
+.mapGrid > div {
+  background-color: rgba(0, 0, 8, 0.95);
+}
+
 .marked {
   outline: red 2px solid !important;
+}
+
+.ent_test {
+  background-color: yellow;
 }
 
 /*# sourceMappingURL=style.css.map */
