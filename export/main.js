@@ -172,14 +172,50 @@ const spriteTileSet = {
 };
 
 let entities = [];
+let score = {
+  points: 0,
+  kills: 0,
+  kill_types: {},
+};
 
 // CREATE FUNCTIONS
+const createGame_GridTiles = () => {
+  const container = document.querySelector(".game_display_container");
+  const grid = document.createElement("div");
+  const tileWidth = container.clientHeight / rows;
+  if (tileWidth != container.clientWidth / cols) {
+    console.error(
+      `WARNING: TILE WIDTH AND HEIGHT MISSMATCH, ${tileWidth} x ${
+        container.clientWidth / cols
+      }`
+    );
+  }
+
+  grid.classList.add("mapGrid");
+  grid.style.display = `grid`;
+  grid.style.gridTemplateRows = `repeat(${rows},${tileWidth}px)`;
+  grid.style.gridTemplateColumns = `repeat(${cols},${tileWidth}px)`;
+  container.appendChild(grid);
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const div = document.createElement("div");
+      div.id = `${r}-${c}`;
+      div.addEventListener("mouseover", () =>
+        setLight_Glow(r, c, light_radius)
+      );
+      grid.appendChild(div);
+    }
+  }
+};
+
 const createEntity = ({
   name = "null",
   position_x = 0,
   position_y = 0,
   health = 100,
   speed = 100,
+  points = 20,
 } = {}) => {
   const entity = {
     position: {
@@ -191,6 +227,7 @@ const createEntity = ({
       health: health,
       speed: speed,
     },
+    points: points,
     id: createUUID(),
   };
   // console.log(entity);
@@ -469,33 +506,7 @@ const createCanvas_background = () => {
 
 // GENERAL
 const initGameEvents = () => {
-  const container = document.querySelector(".game_display_container");
-  const grid = document.createElement("div");
-  const tileWidth = container.clientHeight / rows;
-  if (tileWidth != container.clientWidth / cols) {
-    console.error(
-      `WARNING: TILE WIDTH AND HEIGHT MISSMATCH, ${tileWidth} x ${
-        container.clientWidth / cols
-      }`
-    );
-  }
-
-  grid.classList.add("mapGrid");
-  grid.style.display = `grid`;
-  grid.style.gridTemplateRows = `repeat(${rows},${tileWidth}px)`;
-  grid.style.gridTemplateColumns = `repeat(${cols},${tileWidth}px)`;
-  container.appendChild(grid);
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const div = document.createElement("div");
-      div.id = `${r}-${c}`;
-      div.addEventListener("mouseover", () =>
-        setLight_Glow(r, c, light_radius)
-      );
-      grid.appendChild(div);
-    }
-  }
+  createGame_GridTiles();
   createCanvas_background();
 
   setTimeout(() => {
@@ -598,63 +609,7 @@ const setEntity_canvasReDraw = (entity) => {
           SPRITE_HEIGHT
         );
         if (!entity.state.fireRenderLoop) {
-          entity.state.fireRenderDelay = 0;
-          entity.state.fireRenderTick = 0;
-          entity.state.fireRenderLoop = setInterval(() => {
-            if (entity.state.fireRenderDelay > 10) {
-              const canvas = entity.canvas;
-              const context = canvas.getContext("2d");
-              const list = [
-                `./assets/temp_unit.png`,
-                `./assets/temp_unit_scream.png`,
-                `./assets/Mini_Fires_2/1/fireSpritesheet.png`,
-              ];
-              const fire_sprite = new Image();
-              const image = new Image();
-              image.src = `${list[1]}`;
-              fire_sprite.src = `${list[2]}`;
-
-              fire_sprite.onload = () => {
-                context.clearRect(0, 0, canvas.width, canvas.height);
-                // const tile_sprite = getSpriteFromTileSet(0);
-                const offset = getTIleOffsetPosition(
-                  0,
-                  entity.state.fireRenderTick
-                );
-                context.drawImage(
-                  image,
-                  0,
-                  0,
-                  SPRITE_WIDTH,
-                  SPRITE_HEIGHT,
-                  0,
-                  0,
-                  SPRITE_WIDTH,
-                  SPRITE_HEIGHT
-                );
-
-                context.drawImage(
-                  fire_sprite,
-                  offset.x,
-                  offset.y,
-                  SPRITE_WIDTH,
-                  SPRITE_HEIGHT,
-                  0,
-                  0,
-                  SPRITE_WIDTH,
-                  SPRITE_HEIGHT
-                );
-                entity.state.fireRenderTick = entity.state.fireRenderTick + 1;
-                if (entity.state.fireRenderTick >= 30) {
-                  clearInterval(entity.state.fireRenderLoop);
-                  delete entity.state.fireRenderLoop;
-                  delete entity.state.fireRenderDelay;
-                  delete entity.state.fireRenderTick;
-                }
-              };
-            }
-            entity.state.fireRenderDelay = entity.state.fireRenderDelay + 1;
-          }, entity.stat.speed / 30);
+          setEntity_drawFireLoop(entity);
         }
       };
 
@@ -679,6 +634,103 @@ const setEntity_canvasReDraw = (entity) => {
       SPRITE_HEIGHT
     );
   };
+};
+
+const setEntity_drawFireLoop = (entity) => {
+  entity.state.fireRenderDelay = 0;
+  entity.state.fireRenderTick = 0;
+  entity.state.fireRenderLoop = setInterval(() => {
+    const list = [
+      `./assets/temp_unit.png`,
+      `./assets/temp_unit_scream.png`,
+      `./assets/Mini_Fires_2/1/fireSpritesheet.png`,
+    ];
+    if (entity.state.fireRenderDelay > 10) {
+      const canvas = entity.canvas;
+      const context = canvas.getContext("2d");
+      const fire_sprite = new Image();
+      const image = new Image();
+      image.src = `${list[1]}`;
+      fire_sprite.src = `${list[2]}`;
+
+      fire_sprite.onload = () => {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        // const tile_sprite = getSpriteFromTileSet(0);
+        const offset = getTIleOffsetPosition(0, entity.state.fireRenderTick);
+        context.drawImage(
+          image,
+          0,
+          0,
+          SPRITE_WIDTH,
+          SPRITE_HEIGHT,
+          0,
+          0,
+          SPRITE_WIDTH,
+          SPRITE_HEIGHT
+        );
+
+        context.drawImage(
+          fire_sprite,
+          offset.x,
+          offset.y,
+          SPRITE_WIDTH,
+          SPRITE_HEIGHT,
+          0,
+          0,
+          SPRITE_WIDTH,
+          SPRITE_HEIGHT
+        );
+        entity.state.fireRenderTick = entity.state.fireRenderTick + 1;
+        if (entity.state.fireRenderTick >= 30) {
+          clearInterval(entity.state.fireRenderLoop);
+          delete entity.state.fireRenderLoop;
+          delete entity.state.fireRenderDelay;
+          delete entity.state.fireRenderTick;
+        }
+      };
+    }
+    const canvas = entity.canvas;
+    const context = canvas.getContext("2d");
+    const image = new Image();
+    image.src = `${list[1]}`;
+
+    image.onload = () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(
+        image,
+        0,
+        0,
+        SPRITE_WIDTH,
+        SPRITE_HEIGHT,
+        0,
+        0,
+        SPRITE_WIDTH,
+        SPRITE_HEIGHT
+      );
+    };
+    entity.state.fireRenderDelay = entity.state.fireRenderDelay + 1;
+  }, entity.stat.speed / 30);
+};
+
+const setScore_points_additive = (amount) => {
+  score.points = score.points + amount;
+  setScore_updateDisplay(score.points);
+  console.log(score);
+};
+
+const setScore_kills = (entity_name) => {
+  score.kills = score.kills + 1;
+  if (score.kill_types[entity_name])
+    score.kill_types[entity_name] = score.kill_types[entity_name] + 1;
+  else score.kill_types[entity_name] = 1;
+};
+
+const setScore_updateDisplay = (score) => {
+  if (document.querySelector(`[id="${"game_score_text"}"]`))
+    document.querySelector(
+      `[id="${"game_score_text"}"]`
+    ).innerText = `${score}`;
+  else console.error("NO SCORE ELEMENT FOUND, #game_score_text");
 };
 
 // ENTITY - ENTITIES // uhh somewhere x and y is switched, should've gone for rows and cols instead :P
@@ -720,6 +772,8 @@ const entity_move = async (entity, position_x, position_y) => {
       console.log(entity.stat.health);
       if (entity.stat.health <= 0) {
         clearPathingMove({ clearSelf: true, deleteSelf: true });
+        setScore_kills(entity.name);
+        setScore_points_additive(entity.points);
         console.warn(entity, "stopped, quite DELETED");
       }
     } else {
