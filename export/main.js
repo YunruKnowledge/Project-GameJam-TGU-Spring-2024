@@ -177,6 +177,10 @@ let score = {
   kills: 0,
   kill_types: {},
 };
+let load_tracker = {
+  gridMap: false,
+  background: false,
+};
 
 // CREATE FUNCTIONS
 const createGame_GridTiles = () => {
@@ -207,6 +211,8 @@ const createGame_GridTiles = () => {
       grid.appendChild(div);
     }
   }
+
+  load_tracker.gridMap = true;
 };
 
 const createEntity = ({
@@ -234,12 +240,13 @@ const createEntity = ({
   return entity;
 };
 
-const createEntity_spawn = (amount) => {
+const createEntity_spawn_multiple = (amount, unit) => {
   // later - unit types
   for (let index = 0; index < amount; index++) {
-    entities.push(createEntity({ name: `vampire_unit`, health: 200 }));
-    createCanvas_unit(entities[index]);
-    entity_lookForNewSafeSpot(entities[index]);
+    const entity = createEntity({ name: `vampire_unit`, health: 200 , position_x: 1, position_y:39})
+    entities.push(entity);
+    createCanvas_unit(entity);
+    entity_lookForNewSafeSpot(entity);
   }
 };
 
@@ -486,6 +493,7 @@ const createCanvas_background = () => {
       }
     }
     container.prepend(canvas);
+    load_tracker.background = true;
   };
 
   // add check for number and string later, if string then search for Obj.entries name
@@ -502,19 +510,6 @@ const createCanvas_background = () => {
       if (r <= sum) return i;
     }
   };
-};
-
-// GENERAL
-const initGameEvents = () => {
-  createGame_GridTiles();
-  createCanvas_background();
-
-  setTimeout(() => {
-    createEntity_spawn(1);
-    // entity_lookForNewSafeSpot(entities[1]);
-    // entity_lookForNewSafeSpot(entities[2]);
-    setInterval(() => {}, 400);
-  }, 200);
 };
 
 // SET- MODIFY
@@ -911,6 +906,33 @@ const entity_findPath = (entity = null, position = { x: 0, y: 0 }) => {
     resolve(resultWithWeight);
   });
   // console.log(resultWithWeight);
+};
+
+// GENERAL
+const initGameEvents = () => {
+  createGame_GridTiles();
+  createCanvas_background();
+
+  const loader = setInterval(() => {
+    let loaded_total = 0;
+    let load_length = 0;
+    for (const key in load_tracker) {
+      if (Object.hasOwnProperty.call(load_tracker, key)) {
+        load_length++;
+        if (load_tracker[key]) loaded_total++;
+      }
+    }
+    if (loaded_total == load_length) {
+      console.log(load_tracker, loaded_total, load_length);
+
+      document.addEventListener("click", () => {
+        createEntity_spawn_multiple(1);
+      });
+      clearInterval(loader);
+    }
+  }, 400);
+
+  
 };
 
 initGameEvents();
