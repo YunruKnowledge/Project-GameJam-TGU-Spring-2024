@@ -3,7 +3,8 @@ const cols = 40;
 const light_radius = 6;
 const light_damage = 20;
 const entity_limit = 10;
-const game_defeat_time = 5; //seconds //currently debugging
+const unit_names = ["Vampire", "Zombie", "Skeleton"];
+const game_defeat_time = 5; //seconds
 const SOUND_master_volume = 0.5;
 
 const SPRITE_WIDTH = 16;
@@ -12,7 +13,6 @@ const SPRITE_BORDER_WIDTH = 0;
 const SPRITE_SPACING_WIDTH = 0;
 
 // math things...
-
 const getRandomIntInclusive = (min, max) => {
   const minCeiled = Math.ceil(min);
   const maxFloored = Math.floor(max);
@@ -277,13 +277,36 @@ const createEntity = ({
 const createEntity_spawn_multiple = (amount, unit) => {
   // later - unit types
   for (let index = 0; index < amount; index++) {
+    const randomUnitName = getRandomIntInclusive(0, 2);
     const position = getRandomBorderPosition();
-    const entity = createEntity({
-      name: `vampire_unit`,
-      health: 200,
-      position_x: position.x,
-      position_y: position.y,
-    });
+
+    let entity;
+
+    if (randomUnitName == 0) {
+      entity = createEntity({
+        name: unit_names[randomUnitName],
+        health: 200,
+        points: 20,
+        position_x: position.x,
+        position_y: position.y,
+      });
+    } else if (randomUnitName == 1) {
+      entity = createEntity({
+        name: unit_names[randomUnitName],
+        health: 120,
+        points: 10,
+        position_x: position.x,
+        position_y: position.y,
+      });
+    } else {
+      entity = createEntity({
+        name: unit_names[randomUnitName],
+        health: 80,
+        points: 5,
+        position_x: position.x,
+        position_y: position.y,
+      });
+    }
     entities.push(entity);
     createCanvas_unit(entity);
     entity_lookForNewSafeSpot(entity);
@@ -320,20 +343,27 @@ const createCanvas_unit = (entity) => {
   canvas.height = SPRITE_HEIGHT;
   canvas.style.position = `absolute`;
 
-  canvas.addEventListener("onFire", () => {});
-
   const context = canvas.getContext("2d");
   const image = new Image();
-  const frame = [`./assets/temp_unit.png`, `./assets/temp_unit_scream.png`];
-  image.src = `${frame[0]}`;
-  image.onload = () => {
-    // const tile_sprite = getSpriteFromTileSet(0);
-    const offset = getTIleOffsetPosition(0, 0);
+  let sprites = [];
+  if (entity.name === unit_names[0])
+    sprites = [`./assets/unit_vampire.png`, `./assets/unit_vampire_scream.png`];
+  else if (entity.name === unit_names[1])
+    sprites = [`./assets/unit_zombie.png`, `./assets/unit_zombie_scream.png`];
+  else
+    sprites = [
+      `./assets/unit_skeleton.png`,
+      `./assets/unit_skeleton_scream.png`,
+    ];
 
+  entity.spriteFrames = sprites;
+  image.src = `${sprites[0]}`;
+  image.onload = () => {
+    // this causes the sprite to appear top left, might remove this later.
     context.drawImage(
       image,
-      offset.x,
-      offset.y,
+      0,
+      0,
       SPRITE_WIDTH,
       SPRITE_HEIGHT,
       0,
@@ -609,11 +639,9 @@ const setEntity_state = (entity, state, value) => {
 const setEntity_canvasReDraw = (entity) => {
   const canvas = entity.canvas;
   const context = canvas.getContext("2d");
-  const list = [
-    `./assets/temp_unit.png`,
-    `./assets/temp_unit_scream.png`,
-    `./assets/Mini_Fires_2/1/fireSpritesheet.png`,
-  ];
+  const list = entity.spriteFrames;
+  list.push(`./assets/Mini_Fires_2/1/fireSpritesheet.png`);
+
   const image = new Image();
   if (entity.state)
     if (entity.state.onFire) {
@@ -681,11 +709,9 @@ const setEntity_drawFireLoop = (entity) => {
   entity.state.fireRenderDelay = 0;
   entity.state.fireRenderTick = 0;
   entity.state.fireRenderLoop = setInterval(() => {
-    const list = [
-      `./assets/temp_unit.png`,
-      `./assets/temp_unit_scream.png`,
-      `./assets/Mini_Fires_2/1/fireSpritesheet.png`,
-    ];
+    const list = entity.spriteFrames;
+    list.push(`./assets/Mini_Fires_2/1/fireSpritesheet.png`);
+
     if (entity.state.fireRenderDelay > 10) {
       const canvas = entity.canvas;
       const context = canvas.getContext("2d");
@@ -1025,18 +1051,28 @@ const initGameEvents = () => {
               if (Object.hasOwnProperty.call(final_score, key)) {
                 const text = document.createElement("p");
                 if (key === `kill_types`) {
-                  //need loop later?
-                  // console.log(
-                  //   final_score[key],
-                  //   Object.entries(final_score[key])[0][1]
-                  // );
-                  if (Object.keys(final_score[key])[0])
-                    text.innerText = `${Object.keys(final_score[key])[0]}: ${
-                      Object.entries(final_score[key])[0][1]
-                    }`;
-                  UI_stats_container.appendChild(text);
+                  if (Object.keys(final_score[key])[0]) {
+                    // if has killtypes has any kills
+                    let arrayIndex = 0;
+                    const killTypes = final_score[key];
+                    // console.log(killTypes);
+                    for (const keyIndex in killTypes) {
+                      // print each kill type
+                      if (Object.hasOwnProperty.call(killTypes, keyIndex)) {
+                        const unit = Object.keys(killTypes)[arrayIndex];
+                        arrayIndex++;
+                        const text = document.createElement("p");
+                        text.innerText = `${unit}: ${killTypes[keyIndex]}`;
+                        UI_stats_container.appendChild(text);
+                      }
+                    }
+                  }
                 } else {
-                  if (key === `kills` && final_score[key] > 50) {
+                  if (key === `kills` && final_score[key] > 80) {
+                    const victory_message =
+                      document.querySelector(".victory_message");
+                    victory_message.innerText = `But you will be remembered in history!`;
+                  } else if (key === `kills` && final_score[key] > 50) {
                     const victory_message =
                       document.querySelector(".victory_message");
                     victory_message.innerText = `But you did a valorant effort!`;
@@ -1142,7 +1178,13 @@ document.addEventListener("DOMContentLoaded", function () {
         "./assets/Shapeforms_free_SFX/Dystopia – Ambience and Drone Preview/AUDIO/AMBIENCE_TUNDRA_LOOP_01.wav",
       ],
       loop: true,
-      volume: SOUND_master_volume/2,
+      volume: SOUND_master_volume / 2,
+    }),
+    monster_growl: new Howl({
+      src: [
+        "./assets/Shapeforms_free_SFX/Sci Fi Weapons Cyberpunk Arsenal Preview/AUDIO/CREAMnstr_Beast Vocalisation_09.wav",
+      ],
+      volume: SOUND_master_volume / 1.5,
     }),
     unit_death: new Howl({
       src: [
@@ -1169,7 +1211,12 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   SOUND_ambient_1 = GAME_SOUNDS.ambient_noise_1.play();
-  GAME_SOUNDS.ambient_noise_1.fade(0, SOUND_master_volume, 1000, SOUND_ambient_1);
+  GAME_SOUNDS.ambient_noise_1.fade(
+    0,
+    SOUND_master_volume,
+    1000,
+    SOUND_ambient_1
+  );
   // GAME_SOUNDS.unit_burn.play("burning");
   // SOUND_mute_ingame(false)
   // SOUND_death = GAME_SOUNDS.unit_death.play();
@@ -1187,7 +1234,7 @@ const SOUND_start_game_ambient = () => {
   SOUND_ambient_2 = GAME_SOUNDS.ambient_noise_2.play();
   GAME_SOUNDS.ambient_noise_2.fade(
     0,
-    SOUND_master_volume,
+    SOUND_master_volume / 2,
     1000,
     SOUND_ambient_2
   );
@@ -1200,6 +1247,7 @@ const SOUND_defeat = () => {
     500,
     SOUND_ambient_2
   );
+  GAME_SOUNDS.monster_growl.play();
 };
 
 const SOUND_play_ambient_1 = () => {
@@ -1227,7 +1275,7 @@ const SOUND_stop_ingame = (isStopped = true) => {
     GAME_SOUNDS.unit_burn.stop(0, SOUND_burn);
   } else {
     GAME_SOUNDS.unit_death.stop(SOUND_master_volume, SOUND_death);
-    GAME_SOUNDS.unit_burn.stop(SOUND_master_volume/2, SOUND_burn);
+    GAME_SOUNDS.unit_burn.stop(SOUND_master_volume / 2, SOUND_burn);
   }
 };
 
