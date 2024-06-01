@@ -211,4 +211,12 @@ body img, body canvas, html img, html canvas {
   background-color: yellow;
 }
 
+.version_text {
+  position: absolute;
+  color: white;
+  left: 0.25em;
+  bottom: 0.25em;
+  line-height: 0.8em;
+}
+
 /*# sourceMappingURL=style.css.map */
