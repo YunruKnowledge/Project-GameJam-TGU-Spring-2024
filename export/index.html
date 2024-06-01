@@ -13,6 +13,7 @@
     <div width="640" height="640" class="game_display_container">
       <div class="start_UI">
         <div class="start_menu">
+          <img src="./assets/logo.png" class="start_logo" alt="" />
           <span class="UI_btn" onclick="initGameEvents()"
             ><p>Start</p>
             <img src="./assets/Lucid_v1-2/SVG/Shadow/Play.svg" alt=""
@@ -77,10 +78,7 @@
 
           <span class="UI_btn" onclick="initGameEvents()">
             <p>Restart</p>
-            <img
-              src="./assets/Lucid_v1-2/SVG/Shadow/Redo.svg"
-              alt=""
-            />
+            <img src="./assets/Lucid_v1-2/SVG/Shadow/Redo.svg" alt="" />
           </span>
           <span class="UI_btn" onclick="toggleUI_backToMenu()">
             <img
@@ -91,9 +89,10 @@
           </span>
         </div>
       </div>
-    </div>
-    <div>
-      <span id="game_score_text"></span>
+
+      <div class="game_UI hidden">
+        <span id="game_score_text">0</span>
+      </div>
     </div>
     <script>
       const toggleUI_menu = () => {
@@ -101,11 +100,11 @@
         document.querySelector(".start_menu").classList.toggle("hidden");
       };
 
-      const toggleUI_backToMenu = ()=> {
+      const toggleUI_backToMenu = () => {
         document.querySelector(".end_UI").classList.toggle("hidden");
         document.querySelector(".start_UI").classList.toggle("hidden");
         document.querySelector(".start_menu").classList.toggle("hidden");
-      }
+      };
     </script>
   </body>
 </html>

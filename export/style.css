@@ -76,6 +76,13 @@ body img, body canvas, html img, html canvas {
   gap: 0.25em;
 }
 
+.start_logo {
+  position: absolute;
+  top: 0%;
+  left: 50%;
+  transform: translate(-50%, 25%);
+}
+
 .start_credits {
   display: flex;
   flex-direction: column;
@@ -147,6 +154,25 @@ body img, body canvas, html img, html canvas {
 }
 .end_UI > div > span:first-of-type {
   margin-top: 1em;
+}
+
+.game_UI {
+  position: absolute;
+}
+.game_UI #game_score_text {
+  position: absolute;
+  top: 0.25em;
+  left: 0.25em;
+  padding: 0 0.25em;
+  width: max-content;
+  min-width: 6ch;
+  border-radius: 4px;
+  border: 1px solid white;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.66);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  color: white;
 }
 
 .hidden {

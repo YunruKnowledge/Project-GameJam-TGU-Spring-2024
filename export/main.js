@@ -969,7 +969,7 @@ const initGameEvents = () => {
   document.querySelector(".start_menu").classList.add("hidden");
   document.querySelector(".start_UI").classList.remove("hidden");
   document.querySelector(".start_loadingScreen").classList.remove("hidden");
-  reset_UI_values()
+  reset_UI_values();
 
   //game
   reset_gameValues();
@@ -993,6 +993,7 @@ const initGameEvents = () => {
       document.querySelector(".start_UI").classList.add("hidden");
       document.querySelector(".end_UI").classList.add("hidden");
       document.querySelector(".start_loadingScreen").classList.add("hidden");
+      document.querySelector(".game_UI").classList.remove("hidden");
     }
   }, 400);
 
@@ -1052,7 +1053,7 @@ const initGameEvents = () => {
                   } else if (key === `kills` && final_score[key] <= 10) {
                     const victory_message =
                       document.querySelector(".victory_message");
-                    victory_message.innerText = `Better luck next time... redo history.`;
+                    victory_message.innerText = `Better luck next time...`;
                   }
 
                   text.innerText = `${key}: ${final_score[key]}`;
@@ -1069,11 +1070,12 @@ const initGameEvents = () => {
             setUI_loadingValue(0, Object.entries(load_tracker).length);
 
             const [...all_canvas] = document.querySelectorAll("canvas");
-            console.log(all_canvas);
+            // console.log(all_canvas);
             all_canvas.forEach((el) => {
               el.remove();
             });
-            console.log(document.querySelector(".mapGrid"));
+            // console.log(document.querySelector(".mapGrid"));
+            document.querySelector(".game_UI").classList.add("hidden");
             document.querySelector(".mapGrid").remove();
             document.querySelector(".end_UI").classList.remove("hidden");
           }, game_defeat_time * 1000);
@@ -1095,14 +1097,13 @@ const reset_gameValues = () => {
   }
 };
 
-const reset_UI_values = ()=> {
+const reset_UI_values = () => {
   const UI_stats_container = document.querySelector(".end_stats");
   console.log(UI_stats_container);
-  const [...UI_stats_elements] = UI_stats_container.children
+  const [...UI_stats_elements] = UI_stats_container.children;
   console.log(UI_stats_elements);
-  UI_stats_elements.forEach((element,index) => {
+  UI_stats_elements.forEach((element, index) => {
     console.log(element, index);
-    if (index)
-      element.remove()
+    if (index) element.remove();
   });
-}
+};
