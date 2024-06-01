@@ -3,7 +3,8 @@ const cols = 40;
 const light_radius = 6;
 const light_damage = 20;
 const entity_limit = 10;
-const game_defeat_time = 1; //seconds //currently debugging
+const game_defeat_time = 5; //seconds //currently debugging
+const SOUND_master_volume = 0.5;
 
 const SPRITE_WIDTH = 16;
 const SPRITE_HEIGHT = 16;
@@ -213,6 +214,7 @@ let load_tracker = {
   background: false,
 };
 let global_timers = {};
+let GAME_SOUNDS;
 
 // CREATE FUNCTIONS
 const createGame_GridTiles = () => {
@@ -808,6 +810,7 @@ const entity_move = async (entity, position_x, position_y) => {
       entity_lookForNewSafeSpot(entity);
       clearPathingMove();
     } else if (tile.hasAttribute("isLit")) {
+      if (!entity.state.onFIre) SOUND_play_unit_burn();
       setEntity_state(entity, "onFire", true);
       setEntity_canvasReDraw(entity);
 
@@ -840,6 +843,7 @@ const entity_move = async (entity, position_x, position_y) => {
     // console.log(tile);
     current_path_index++;
     function entity_death() {
+      SOUND_play_unit_death();
       clearPathingMove({ deleteSelf: true });
       setScore_kills(entity.name);
       setScore_points_additive(entity.points);
@@ -994,6 +998,8 @@ const initGameEvents = () => {
       document.querySelector(".end_UI").classList.add("hidden");
       document.querySelector(".start_loadingScreen").classList.add("hidden");
       document.querySelector(".game_UI").classList.remove("hidden");
+      SOUND_start_game_ambient();
+      SOUND_mute_ingame(false);
     }
   }, 400);
 
@@ -1062,6 +1068,8 @@ const initGameEvents = () => {
               }
             }
 
+            SOUND_stop_ingame();
+            SOUND_mute_ingame();
             for (let index = 0; index < entities.length; index++) {
               // console.log(entities[index]);
               entities[index].stat.health = -1;
@@ -1074,6 +1082,8 @@ const initGameEvents = () => {
             all_canvas.forEach((el) => {
               el.remove();
             });
+
+            SOUND_defeat();
             // console.log(document.querySelector(".mapGrid"));
             document.querySelector(".game_UI").classList.add("hidden");
             document.querySelector(".mapGrid").remove();
@@ -1106,4 +1116,125 @@ const reset_UI_values = () => {
     console.log(element, index);
     if (index) element.remove();
   });
+};
+
+// SOUNDS
+var SOUND_ambient_1;
+var SOUND_ambient_2;
+var SOUND_burn;
+var SOUND_death;
+document.addEventListener("DOMContentLoaded", function () {
+  GAME_SOUNDS = {
+    button_click: new Howl({
+      src: [
+        "./assets/Shapeforms_free_SFX/Cassette Preview/AUDIO/BUTTON_05.wav",
+      ],
+    }),
+    ambient_noise_1: new Howl({
+      src: [
+        "./assets/Shapeforms_free_SFX/Dystopia – Ambience and Drone Preview/AUDIO/AMBIENCE_SPACECRAFT_HOLD_LOOP.wav",
+      ],
+      loop: true,
+      volume: SOUND_master_volume,
+    }),
+    ambient_noise_2: new Howl({
+      src: [
+        "./assets/Shapeforms_free_SFX/Dystopia – Ambience and Drone Preview/AUDIO/AMBIENCE_TUNDRA_LOOP_01.wav",
+      ],
+      loop: true,
+      volume: SOUND_master_volume/2,
+    }),
+    unit_death: new Howl({
+      src: [
+        "./assets/Shapeforms_free_SFX/Sci Fi Weapons Cyberpunk Arsenal Preview/AUDIO/SCIEnrg_Energy Orb_05.wav",
+      ],
+      volume: 0,
+    }),
+    unit_burn: new Howl({
+      src: ["./assets/mixkit-aggressive-fire-flame-1333.wav"],
+      volume: 0,
+      sprite: {
+        full: [0, 7000],
+        ignition: [0, 1500],
+        burning: [1500, 200],
+      },
+    }),
+  };
+
+  const [...UI_buttons] = document.querySelectorAll(".UI_btn");
+  UI_buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      GAME_SOUNDS.button_click.play();
+    });
+  });
+
+  SOUND_ambient_1 = GAME_SOUNDS.ambient_noise_1.play();
+  GAME_SOUNDS.ambient_noise_1.fade(0, SOUND_master_volume, 1000, SOUND_ambient_1);
+  // GAME_SOUNDS.unit_burn.play("burning");
+  // SOUND_mute_ingame(false)
+  // SOUND_death = GAME_SOUNDS.unit_death.play();
+  // SOUND_burn = GAME_SOUNDS.unit_burn.play("full");
+});
+
+const SOUND_start_game_ambient = () => {
+  GAME_SOUNDS.ambient_noise_1.fade(
+    SOUND_master_volume,
+    0,
+    1000,
+    SOUND_ambient_1
+  );
+
+  SOUND_ambient_2 = GAME_SOUNDS.ambient_noise_2.play();
+  GAME_SOUNDS.ambient_noise_2.fade(
+    0,
+    SOUND_master_volume,
+    1000,
+    SOUND_ambient_2
+  );
+};
+
+const SOUND_defeat = () => {
+  GAME_SOUNDS.ambient_noise_2.fade(
+    SOUND_master_volume,
+    0,
+    500,
+    SOUND_ambient_2
+  );
+};
+
+const SOUND_play_ambient_1 = () => {
+  GAME_SOUNDS.ambient_noise_1.fade(
+    0,
+    SOUND_master_volume,
+    1000,
+    SOUND_ambient_1
+  );
+};
+
+const SOUND_mute_ingame = (isMuted = true) => {
+  if (isMuted) {
+    GAME_SOUNDS.unit_death.volume(0, SOUND_death);
+    GAME_SOUNDS.unit_burn.volume(0, SOUND_burn);
+  } else {
+    GAME_SOUNDS.unit_death.volume(SOUND_master_volume, SOUND_death);
+    GAME_SOUNDS.unit_burn.volume(SOUND_master_volume, SOUND_burn);
+  }
+};
+
+const SOUND_stop_ingame = (isStopped = true) => {
+  if (isStopped) {
+    GAME_SOUNDS.unit_death.stop(0, SOUND_death);
+    GAME_SOUNDS.unit_burn.stop(0, SOUND_burn);
+  } else {
+    GAME_SOUNDS.unit_death.stop(SOUND_master_volume, SOUND_death);
+    GAME_SOUNDS.unit_burn.stop(SOUND_master_volume/2, SOUND_burn);
+  }
+};
+
+const SOUND_play_unit_burn = () => {
+  GAME_SOUNDS.unit_burn.play("burning");
+};
+
+const SOUND_play_unit_death = () => {
+  GAME_SOUNDS.unit_death.play();
 };

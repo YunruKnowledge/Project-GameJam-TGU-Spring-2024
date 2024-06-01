@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css" />
     <script defer src="./main.js"></script>
     <script defer src="./astar.js"></script>
+    <script defer src="./howler.js"></script>
   </head>
   <body>
     <!-- how did the vampires die!? -->
@@ -40,10 +41,21 @@
               <span>Art assets: </span><span>Seliel the Shaper</span>,
               <span>Midhil M.</span>, <span>XYEzawr</span>
             </p>
-            <p><span>Sounds: </span><span>Shaperforms</span></p>
+            <p><span>Sounds: </span><span>Shaperforms</span>, <span>MixKit</span></p>
             <p>
-              <span>Used code snippets/libraries: </span
-              ><span>Brian Grinstead (Astar.js)</span>
+              <span>Snippets/libraries: </span
+              ><span
+                >Brian Grinstead
+                <a href="https://github.com/bgrins/javascript-astar"
+                  >(Astar.js)</a
+                ></span
+              >,
+              <span
+                >James Simpson
+                <a href="https://github.com/goldfire/howler.js"
+                  >(Howler.js)</a
+                ></span
+              >
             </p>
             <p>Other assets/code are done by me.</p>
             <p>*Shaperforms's SFX are <i>use</i> only.</p>
@@ -80,7 +92,7 @@
             <p>Restart</p>
             <img src="./assets/Lucid_v1-2/SVG/Shadow/Redo.svg" alt="" />
           </span>
-          <span class="UI_btn" onclick="toggleUI_backToMenu()">
+          <span class="UI_btn" onclick="toggleUI_backToMenu();SOUND_play_ambient_1()">
             <img
               src="./assets/Lucid_v1-2/SVG/Shadow/Chevron-Arrow-Left.svg"
               alt=""
